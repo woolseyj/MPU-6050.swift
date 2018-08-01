@@ -27,8 +27,8 @@ import SwiftyGPIO  //Comment this when not using the package manager
 
 
 public class MPU6050{
-    var i2c: I2CInterface
-    let address: Int
+    public let i2c: I2CInterface
+    public let address: Int
 
     public init(_ i2c: I2CInterface, address: Int = 0x68) {
        self.i2c = i2c
