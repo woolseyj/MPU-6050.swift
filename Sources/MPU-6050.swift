@@ -49,6 +49,50 @@ public class MPU6050 {
     public let i2c: I2CInterface
     public let address: Int
 
+    // Full-scale accelerometer range in ±g
+    // ACCEL_CONFIG register, AFS_SEL[1:0] bits
+    public enum FullScaleAccelRange: UInt8 {
+        case fs2g = 0b00
+        case fs4g = 0b01
+        case fs8g = 0b10
+        case fs16g = 0b11
+
+        public var description: String {
+            switch self {
+                case .fs2g:
+                    return "±2g"
+                case .fs4g:
+                    return "±4g"
+                case .fs8g:
+                    return "±8g"
+                case .fs16g:
+                    return "±16g"
+            }
+        }
+    }
+
+    // Full-scale gyroscope range in ±°/s
+    // GYRO_CONFIG register, FS_SEL[1:0] bits
+    public enum FullScaleGyroRange: UInt8 {
+        case fs250ds = 0b00
+        case fs500ds = 0b01
+        case fs1000ds = 0b10
+        case fs2000ds = 0b11
+
+        public var description: String {
+            switch self {
+                case .fs250ds:
+                    return "±250°/s"
+                case .fs500ds:
+                    return "±500°/s"
+                case .fs1000ds:
+                    return "±1000°/s"
+                case .fs2000ds:
+                    return "±2000°/s"
+            }
+        }
+    }
+
     // Initializer
     public init(_ i2c: I2CInterface, address: Int = 0x68) {
        self.i2c = i2c
@@ -188,6 +232,46 @@ public class MPU6050 {
         }
         set(newOffset) {
             writeWord2c(register: ZG_OFFS_USRH, value: newOffset)
+        }
+    }
+
+    // Full-scale accelerometer range in ±g
+    public var AccelRange: FullScaleAccelRange? {
+        // ACCEL_CONFIG register, AFS_SEL[1:0] bits
+        get {
+            let rv = i2c.readByte(address, command: ACCEL_CONFIG)
+            let bits = (rv << 3) >> 6
+            return FullScaleAccelRange(rawValue: bits)
+        }
+        set(newRange) {
+            guard let range = newRange else {
+                print("ERROR: Could not write unknown accelerometer range.")
+                return
+            }
+            var rv = i2c.readByte(address, command: ACCEL_CONFIG)
+            rv &= UInt8(0xE7)  // clear bits
+            rv |= UInt8(range.rawValue) << 3  // set bits
+            i2c.writeByte(address, command: ACCEL_CONFIG, value: rv)
+        }
+    }
+
+    // Full-scale gyroscope range in ±°/s
+    public var GyroRange: FullScaleGyroRange? {
+        // GYRO_CONFIG register, FS_SEL[1:0] bits
+        get {
+            let rv = i2c.readByte(address, command: GYRO_CONFIG)
+            let bits = (rv << 3) >> 6
+            return FullScaleGyroRange(rawValue: bits)
+        }
+        set(newRange) {
+            guard let range = newRange else {
+                print("ERROR: Could not write unknown gyroscope range.")
+                return
+            }
+            var rv = i2c.readByte(address, command: GYRO_CONFIG)
+            rv &= UInt8(0xE7)  // clear bits
+            rv |= UInt8(range.rawValue) << 3  // set bits
+            i2c.writeByte(address, command: GYRO_CONFIG, value: rv)
         }
     }
 
