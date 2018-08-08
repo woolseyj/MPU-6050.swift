@@ -74,13 +74,13 @@ public class MPU6050{
 
     /// Enables or disables the device
     public func enable(_ on: Bool){
-        // PWR_MGMT_1 register, SLEEP bit
-        i2c.writeByte(address, command: 0x6B, value: UInt8(on ? 0 : 0x40))
+        // PWR_MGMT_1 register, SLEEP bit, CLKSEL[2:0] bits
+        i2c.writeByte(address, command: 0x6B, value: UInt8(on ? 0x01 : 0x40))
     }
 
     /// Resets the device
     public func reset(){
-        // PWR_MGMT_1 register, SLEEP bit
+        // PWR_MGMT_1 register, DEVICE_RESET bit
         let tmp = i2c.readByte(address, command: 0x6B) 
         i2c.writeByte(address, command: 0x6B, value: UInt8(0x80))
         i2c.writeByte(address, command: 0x6B, value: tmp)
